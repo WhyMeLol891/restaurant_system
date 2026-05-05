@@ -50,5 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="password" name="password" placeholder="Password" required>
             <input type="password" name="confirm_password" placeholder="Confirm Password" required>
             <input type="submit" value="Register">
+            <p>Already have an account? <a href="admin_login.php">Login here</a>.</p>
         </form>
     </div>

@@ -35,20 +35,27 @@ if (isset($_POST['remove_from_cart'])) {
 
 // Handle order submission
 if (isset($_POST['place_order'])) {
-    $customer_name = $_POST['customer_name'];
-    $customer_phone = $_POST['customer_phone'];
-    $customer_address = $_POST['customer_address'];
+    $customer_name = $conn->real_escape_string($_POST['customer_name']);
+    $customer_phone = $conn->real_escape_string($_POST['customer_phone']);
+    $customer_address = $conn->real_escape_string($_POST['customer_address']);
 
-    // Insert order into database (assuming orders table exists)
+    $order_items = [];
     $total_amount = 0;
     foreach ($_SESSION['cart'] as $item) {
+        $order_items[] = $item['quantity'] . ' x ' . $item['name'];
         $total_amount += $item['price'] * $item['quantity'];
     }
 
-    // Here you would insert the order and order items into database
-    // For now, just clear the cart and show success message
-    $_SESSION['cart'] = [];
-    $order_success = true;
+    $order_items_text = $conn->real_escape_string(implode("\n", $order_items));
+
+    $sql = "INSERT INTO orders (order_items, customer_name, customer_phone, customer_address, total_amount, status, created_at) VALUES ('{$order_items_text}', '{$customer_name}', '{$customer_phone}', '{$customer_address}', {$total_amount}, 'Pending', NOW())";
+
+    if ($conn->query($sql)) {
+        $_SESSION['cart'] = [];
+        $order_success = true;
+    } else {
+        $order_error = 'Unable to place order: ' . $conn->error;
+    }
 }
 
 // Sample menu items (replace with database query when DB is set up)
@@ -271,6 +278,12 @@ foreach ($menu_items as $item) {
         <?php if (isset($order_success) && $order_success): ?>
             <div class="success-message">
                 <strong>Order placed successfully!</strong> Thank you for your order. We'll contact you soon.
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($order_error)): ?>
+            <div class="success-message" style="background-color: #f8d7da; color: #842029; border-color: #f5c2c7;">
+                <strong>Error:</strong> <?php echo htmlspecialchars($order_error); ?>
             </div>
         <?php endif; ?>
 

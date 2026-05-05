@@ -5,7 +5,8 @@ error_reporting(E_ALL);
 
 $servername = "localhost";
 $username = "root";
-$password = ""; 
+$port = 3307;
+$password = "poop3832"; 
 $dbname = "restaurant_system";
 
 $conn = new mysqli($servername, $username, $password, $dbname, $port);

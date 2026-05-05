@@ -71,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="number" step="0.01" name="price" placeholder="Price" required>
         <input type="text" name="category" placeholder="Category" required>
         <input type="number" name="stock" placeholder="Stock Quantity" required>
-        <input type="submit" value="Add Food">
+        <input type="submit" value="Add Food" window.location.href='admin.php'>
     </form>
 </body>
 </html>

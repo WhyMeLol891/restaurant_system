@@ -3,10 +3,12 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+
 $servername = "localhost";
 $username = "root";
-$port = 3307;
-$password = "poop3832"; 
+$port = "3307";
+$password = ""; 
 $dbname = "restaurant_system";
 
 $conn = new mysqli($servername, $username, $password, $dbname, $port);

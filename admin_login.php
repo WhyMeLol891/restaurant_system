@@ -39,5 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
             <input type="submit" value="Login">
+            <p>Don't have an account? <a href="admin_register.php">Register here</a>.</p>
         </form>
     </div>

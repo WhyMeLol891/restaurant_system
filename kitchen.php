@@ -27,10 +27,10 @@ $result = $conn->query($sql);
 if ($result === false) {
     // This will tell you EXACTLY what MySQL is grumpy about
     die("MySQL Error: " . $conn->error);
-
-if ($result === false) {
+}if ($result === false) {
     die('Query error: ' . $conn->error);
 }
+
 ?>
 
 <!DOCTYPE html>

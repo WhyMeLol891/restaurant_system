@@ -8,7 +8,7 @@ session_start();
 $servername = "localhost";
 $username = "root";
 $port = "3307";
-$password = ""; 
+$password = "poop3832"; 
 $dbname = "restaurant_system";
 
 $conn = new mysqli($servername, $username, $password, $dbname, $port);

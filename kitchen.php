@@ -1,17 +1,14 @@
 <?php
 include 'db.php'; 
 
-// 1. UPDATE LOGIC (Must be at the very top before any HTML)
 if (isset($_GET['update_id']) && isset($_GET['new_status'])) {
     $id = intval($_GET['update_id']);
-    // Sanitize input to prevent SQL injection
     $status = $conn->real_escape_string($_GET['new_status']);
     $allowedStatuses = ['Pending', 'Preparing', 'Completed'];
 
     if (in_array($status, $allowedStatuses, true)) {
         $sql = "UPDATE orders SET status='$status' WHERE id=$id";
         if ($conn->query($sql)) {
-            // Redirect to the same page to clear GET parameters
             header("Location: kitchen.php");
             exit;
         } else {
@@ -23,10 +20,6 @@ if (isset($_GET['update_id']) && isset($_GET['new_status'])) {
 // Check this line in your kitchen.php
 $sql = "SELECT * FROM orders WHERE status != 'Completed' ORDER BY id ASC";
 $result = $conn->query($sql);
-
-if ($result === false) {
-    // This will tell you EXACTLY what MySQL is grumpy about
-    die("MySQL Error: " . $conn->error);
 
 if ($result === false) {
     die('Query error: ' . $conn->error);
@@ -71,32 +64,27 @@ if ($result === false) {
 
 <h2>👨‍🍳 Kitchen Orders</h2>
 
-<?php if ($result->num_rows > 0): ?>
-    <?php while($row = $result->fetch_assoc()): ?>
+<?php if ($result->num_rows > 0) { ?>
+    <?php while($row = $result->fetch_assoc()) { ?>
         <div class="order-card <?php echo ($row['status'] == 'Preparing') ? 'preparing-border' : ''; ?>">
             <span class="badge"><?php echo $row['status']; ?></span>
             <h3>Order #<?php echo $row['id']; ?></h3>
             <p><strong>Items:</strong><br><?php echo nl2br($row['order_items']); ?></p>
             
             <div style="margin-top: 15px;">
-                <?php if ($row['status'] == 'Pending'): ?>
+                <?php if ($row['status'] == 'Pending') { ?>
                     <a href="kitchen.php?update_id=<?php echo $row['id']; ?>&new_status=Preparing" class="status-btn preparing">
                         Start Preparing
                     </a>
-                <?php elseif ($row['status'] == 'Preparing'): ?>
+                <?php } elseif ($row['status'] == 'Preparing') { ?>
                     <a href="kitchen.php?update_id=<?php echo $row['id']; ?>&new_status=Completed" class="status-btn complete">
                         Mark as Completed
                     </a>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
-    <?php endwhile; ?>
-<?php else: ?>
-    <div style="text-align:center; padding: 50px; color: #888;">
-        <h3>No active orders.</h3>
-        <p>New orders will appear here automatically.</p>
+    <?php } ?>
+<?php } else { ?>
+    <div style="text-align:center;">            <h3>No active orders.</h3>
     </div>
-<?php endif; ?>
-
-</body>
-</html>
+<?php } ?>

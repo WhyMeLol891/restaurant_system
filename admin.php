@@ -5,7 +5,7 @@ include 'db.php';
 $totalRevenue = 0;
 $completedFoods = [];
 
-$revenueQuery = "SELECT SUM(price * stock) AS revenue FROM food WHERE status IN ('done', 'completed')";
+$revenueQuery = "SELECT SUM(total_revenue) AS revenue FROM revenue_summary WHERE id = 1 LIMIT 1";
 if ($result = mysqli_query($conn, $revenueQuery)) {
     $row = mysqli_fetch_assoc($result);
     $totalRevenue = $row['revenue'] ?? 0;
@@ -47,8 +47,10 @@ if ($result = mysqli_query($conn, $foodQuery)) {
     <div class="top-menu">
         <h1>Restaurant System</h1>
         <div class="top-menu-buttons">
+            <a href="order.php" class="button">View Orders</a>
             <a href="view_food.php" class="button">View Food</a>
             <a href="add_food.php" class="button">Add Food</a>
+            <a href="kitchen.php" class="button">Kitchen Dashboard</a>
             <a href="admin_login.php" class="button login-btn">Login</a>
             <?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
                     <a href="#"><?=$_SESSION['username']?> </a>
@@ -62,7 +64,6 @@ if ($result = mysqli_query($conn, $foodQuery)) {
                 <h1>Admin Dashboard</h1>
                 <p>Overview of completed sales and revenue.</p>
             </div>
-            <a class="button" href="add_food.php">Add Food</a>
         </div>
 
         <div class="stats">
@@ -103,6 +104,9 @@ if ($result = mysqli_query($conn, $foodQuery)) {
                 </tbody>
             </table>
         </div>
+    </div>
+    <div class="top-menu-buttons">
+        <a href="payment.php" class="button">View Payments</a>
     </div>
 </body>
 </html>

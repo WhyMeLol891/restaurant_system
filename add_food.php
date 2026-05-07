@@ -3,15 +3,16 @@
 include 'db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $food_name = $_POST['food_name'];
-    $description = $_POST['description'];
-    $price = $_POST['price'];
-    $category = $_POST['category'];
-    $stock = $_POST['stock'];
+    $food_name = trim($_POST['food_name'] ?? '');
+    $description = trim($_POST['description'] ?? '');
+    $price = (float)($_POST['price'] ?? 0);
+    $category = trim($_POST['category'] ?? '');
+    $stock = (int)($_POST['stock'] ?? 0);
+    $image_url = trim($_POST['image_url'] ?? '');
 
-    $sql = "INSERT INTO food (food_name, description, price, category, stock) VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO food (food_name, description, image_url, price, category, stock) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssdss", $food_name, $description, $price, $category, $stock);
+    $stmt->bind_param("sssdsi", $food_name, $description, $image_url, $price, $category, $stock);
     if ($stmt->execute() === TRUE) {
         echo "Food added successfully.";
     } else {
@@ -68,10 +69,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <form method="POST" action="">
         <input type="text" name="food_name" placeholder="Food Name" required>
         <textarea name="description" placeholder="Description" required></textarea>
+        <input type="url" name="image_url" placeholder="Image URL (https://...)" pattern="https?://.+">
         <input type="number" step="0.01" name="price" placeholder="Price" required>
         <input type="text" name="category" placeholder="Category" required>
         <input type="number" name="stock" placeholder="Stock Quantity" required>
-        <input type="submit" value="Add Food" window.location.href='admin.php'>
+        <input type="submit" value="Add Food" window.location.href='view_food.php'">
+        <a style="color: blue; text-decoration: underline;" href="view_food.php" class="button">Back to Food List</a>
     </form>
 </body>
 </html>

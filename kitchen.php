@@ -17,8 +17,16 @@ if (isset($_GET['update_id']) && isset($_GET['new_status'])) {
     }
 }
 
-// Check this line in your kitchen.php
-$sql = "SELECT * FROM orders WHERE status != 'Completed' ORDER BY id ASC";
+$sql = "
+    SELECT
+        o.id,
+        o.table_number,
+        o.status,
+        o.created_at
+    FROM orders o
+    WHERE o.status != 'Completed'
+    ORDER BY o.id ASC
+";
 $result = $conn->query($sql);
 
 if ($result === false) {
@@ -58,6 +66,10 @@ if ($result === false) {
         .preparing { background: #f39c12; }
         .complete { background: #27ae60; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; color: white; background: #34495e; float: right; }
+        .item-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+        .item-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; background: #fff; }
+        .item-name { font-weight: bold; }
+        .item-sub { color: #666; font-size: 13px; }
         h2 { border-bottom: 2px solid #ddd; padding-bottom: 10px; }
     </style>
 </head>
@@ -70,7 +82,32 @@ if ($result === false) {
         <div class="order-card <?php echo ($row['status'] == 'Preparing') ? 'preparing-border' : ''; ?>">
             <span class="badge"><?php echo $row['status']; ?></span>
             <h3>Order #<?php echo $row['id']; ?></h3>
-            <p><strong>Items:</strong><br><?php echo nl2br($row['order_items']); ?></p>
+            <p><strong>Table:</strong> <?php echo !empty($row['table_number']) ? 'Table #' . (int)$row['table_number'] : 'N/A'; ?></p>
+            <p><strong>Items:</strong></p>
+            <?php
+                $itemStmt = $conn->prepare("SELECT food_name, image_url, quantity, price FROM order_items WHERE order_id = ? ORDER BY id ASC");
+                $itemStmt->bind_param('i', $row['id']);
+                $itemStmt->execute();
+                $itemRes = $itemStmt->get_result();
+                if ($itemRes && $itemRes->num_rows > 0) {
+                    while ($item = $itemRes->fetch_assoc()) {
+            ?>
+                <div class="item-row">
+                    <?php if (!empty($item['image_url'])): ?>
+                        <img class="item-img" src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['food_name']); ?>">
+                    <?php endif; ?>
+                    <div>
+                        <div class="item-name"><?php echo htmlspecialchars($item['food_name']); ?></div>
+                        <div class="item-sub">Qty: <?php echo (int)$item['quantity']; ?> | $<?php echo number_format((float)$item['price'], 2); ?></div>
+                    </div>
+                </div>
+            <?php
+                    }
+                } else {
+                    echo '<p style="color:#666;">No items found for this order.</p>';
+                }
+                $itemStmt->close();
+            ?>
             
             <div style="margin-top: 15px;">
                 <?php if ($row['status'] == 'Pending') { ?>

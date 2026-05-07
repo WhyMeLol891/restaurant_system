@@ -21,12 +21,13 @@ if (isset($_POST['update_food'])) {
     $food_name = trim($_POST['food_name'] ?? '');
     $category = trim($_POST['category'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $image_url = trim($_POST['image_url'] ?? '');
     $price = (float) ($_POST['price'] ?? 0);
     $stock = (int) ($_POST['stock'] ?? 0);
 
-    $stmt = mysqli_prepare($conn, "UPDATE food SET food_name = ?, category = ?, description = ?, price = ?, stock = ? WHERE id = ?");
+    $stmt = mysqli_prepare($conn, "UPDATE food SET food_name = ?, category = ?, description = ?, image_url = ?, price = ?, stock = ? WHERE id = ?");
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "sssdii", $food_name, $category, $description, $price, $stock, $id);
+        mysqli_stmt_bind_param($stmt, "ssssdii", $food_name, $category, $description, $image_url, $price, $stock, $id);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         header("Location: view_food.php?msg=updated");
@@ -99,6 +100,9 @@ if ($result) {
             <label>Description:</label><br>
             <textarea name="description"><?php echo htmlspecialchars($edit_food['description'] ?? ''); ?></textarea><br><br>
 
+            <label>Image URL:</label><br>
+            <input type="url" name="image_url" value="<?php echo htmlspecialchars($edit_food['image_url'] ?? ''); ?>" placeholder="https://example.com/food.jpg" pattern="https?://.+"><br><br>
+
             <label>Price:</label><br>
             <input type="number" step="0.01" name="price" value="<?php echo htmlspecialchars($edit_food['price']); ?>" required><br><br>
 
@@ -116,6 +120,7 @@ if ($result) {
             <tr>
                 <th>ID</th>
                 <th>Food Name</th>
+                <th>Image</th>
                 <th>Category</th>
                 <th>Description</th>
                 <th>Price</th>
@@ -129,6 +134,13 @@ if ($result) {
                     <tr>
                         <td><?php echo htmlspecialchars($food['id']); ?></td>
                         <td><strong><?php echo htmlspecialchars($food['food_name']); ?></strong></td>
+                        <td>
+                            <?php if (!empty($food['image_url'])): ?>
+                                <img src="<?php echo htmlspecialchars($food['image_url']); ?>" alt="<?php echo htmlspecialchars($food['food_name']); ?>" style="width:64px;height:64px;object-fit:cover;border-radius:8px;">
+                            <?php else: ?>
+                                N/A
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo htmlspecialchars($food['category'] ?? 'N/A'); ?></td>
                         <td><?php echo htmlspecialchars($food['description'] ?? 'N/A'); ?></td>
                         <td>$<?php echo number_format($food['price'], 2); ?></td>
@@ -142,7 +154,7 @@ if ($result) {
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="7">No food items found in the database.</td>
+                    <td colspan="8">No food items found in the database.</td>
                 </tr>
             <?php endif; ?>
         </tbody>

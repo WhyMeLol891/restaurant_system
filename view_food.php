@@ -4,6 +4,10 @@ include 'db.php';
 $message = '';
 $edit_food = null;
 
+// Prevent browser caching so stock changes made elsewhere (e.g., order.php)
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+
 if (isset($_GET['delete_id'])) {
     $delete_id = (int) $_GET['delete_id'];
     $stmt = mysqli_prepare($conn, "DELETE FROM food WHERE id = ?");
@@ -15,6 +19,8 @@ if (isset($_GET['delete_id'])) {
         exit;
     }
 }
+
+// Ordering is handled centrally in order.php; remove per-item ordering here to avoid duplicate paths.
 
 if (isset($_POST['update_food'])) {
     $id = (int) ($_POST['id'] ?? 0);
@@ -50,10 +56,6 @@ if (isset($_GET['edit_id'])) {
     }
 }
 
-if (isset($_GET['msg'])) {
-    $message = $_GET['msg'] === 'deleted' ? 'Food item deleted successfully.' : ($_GET['msg'] === 'updated' ? 'Food item updated successfully.' : '');
-}
-
 $query = "SELECT * FROM food";
 $result = mysqli_query($conn, $query);
 $foods = [];
@@ -83,10 +85,6 @@ if ($result) {
     <h1>Food Menu / Items</h1>
     <p><a href="admin.php">Back to Admin Dashboard</a></p>
 
-    <?php if (!empty($message)): ?>
-        <p><?php echo htmlspecialchars($message); ?></p>
-    <?php endif; ?>
-
     <?php if ($edit_food): ?>
         <h2>Edit Food Item</h2>
         <form method="post" action="view_food.php">
@@ -114,6 +112,7 @@ if ($result) {
         </form>
         <hr>
     <?php endif; ?>
+    
 
     <table>
         <thead>

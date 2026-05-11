@@ -41,36 +41,11 @@ if ($result === false) {
     <meta charset="UTF-8">
     <title>Kitchen Staff Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-        .order-card { 
-            background: white; 
-            border-radius: 8px; 
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f5f5f5; 
             padding: 20px; 
-            margin-bottom: 15px; 
-            border-left: 10px solid #3498db; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
         }
-        /* Change border color if the order is being prepared */
-        .preparing-border { border-left-color: #f39c12; }
-        
-        .status-btn { 
-            padding: 10px 20px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            color: white; 
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .preparing { background: #f39c12; }
-        .complete { background: #27ae60; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; color: white; background: #34495e; float: right; }
-        .item-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
-        .item-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; background: #fff; }
-        .item-name { font-weight: bold; }
-        .item-sub { color: #666; font-size: 13px; }
-        h2 { border-bottom: 2px solid #ddd; padding-bottom: 10px; }
     </style>
 </head>
 <body>

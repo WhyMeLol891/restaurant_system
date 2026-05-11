@@ -76,3 +76,18 @@ function ensure_order_items_image_url_column($conn)
 
 ensure_order_items_image_url_column($conn);
 
+function ensure_receipts_table($conn)
+{
+    $sql = "CREATE TABLE IF NOT EXISTS receipts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        table_number TINYINT UNSIGNED NULL DEFAULT NULL,
+        order_id INT NULL DEFAULT NULL,
+        order_summary TEXT NULL DEFAULT NULL,
+        amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+    $conn->query($sql);
+}
+
+ensure_receipts_table($conn);
+

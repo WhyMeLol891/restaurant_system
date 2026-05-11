@@ -27,42 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Food</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        form {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        form input, form textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
-        form input[type="submit"] {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        form input[type="submit"]:hover {
-            background-color: #218838;
-        }
-
-    </style>
 </head>
 <body>
     <h1>Add New Food Item</h1>
@@ -73,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="number" step="0.01" name="price" placeholder="Price" required>
         <input type="text" name="category" placeholder="Category" required>
         <input type="number" name="stock" placeholder="Stock Quantity" required>
-        <input type="submit" value="Add Food" window.location.href='view_food.php'">
+        <input type="submit" value="Add Food">
         <a style="color: blue; text-decoration: underline;" href="view_food.php" class="button">Back to Food List</a>
     </form>
 </body>

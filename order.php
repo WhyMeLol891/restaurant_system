@@ -13,18 +13,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_to_cart'])) {
         $itemId = (int)($_POST['item_id'] ?? 0);
         $qty = max(1, (int)($_POST['qty'] ?? 1));
-        $stmt = $conn->prepare('SELECT id, food_name, image_url, price FROM food WHERE id = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, food_name, image_url, price, stock FROM food WHERE id = ? LIMIT 1');
         if ($stmt) {
             $stmt->bind_param('i', $itemId);
             $stmt->execute();
             $res = $stmt->get_result();
             if ($item = $res->fetch_assoc()) {
-                if (isset($_SESSION['cart'][$itemId])) {
-                    $_SESSION['cart'][$itemId]['qty'] += $qty;
+                $availableStock = max(0, (int)($item['stock'] ?? 0));
+                $existingQty = (int)($_SESSION['cart'][$itemId]['qty'] ?? 0);
+                $newQty = $existingQty + $qty;
+                if ($availableStock <= 0) {
+                    $error = 'This food item is out of stock.';
+                } elseif ($newQty > $availableStock) {
+                    $error = 'Only ' . $availableStock . ' of this food item are available.';
                 } else {
-                    $_SESSION['cart'][$itemId] = ['id' => (int)$item['id'], 'name' => $item['food_name'], 'image_url' => (string)($item['image_url'] ?? ''), 'price' => (float)$item['price'], 'qty' => $qty];
+                    if (isset($_SESSION['cart'][$itemId])) {
+                        $_SESSION['cart'][$itemId]['qty'] = $newQty;
+                    } else {
+                        $_SESSION['cart'][$itemId] = ['id' => (int)$item['id'], 'name' => $item['food_name'], 'image_url' => (string)($item['image_url'] ?? ''), 'price' => (float)$item['price'], 'qty' => $qty];
+                    }
+                    $message = 'Item added to cart.';
                 }
-                $message = 'Item added to cart.';
             } else { $error = 'Food item not found.'; }
             $stmt->close();
         } else { $error = 'Failed to prepare add-to-cart query.'; }
@@ -34,6 +43,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['place_order'])) {
         if (empty($_SESSION['cart'])) { $error = 'Your cart is empty.'; }
         else {
+            // Pre-check stock for each cart item to avoid starting a transaction that will fail
+            foreach ($_SESSION['cart'] as $cartItem) {
+                $checkId = (int)$cartItem['id'];
+                $checkQty = (int)$cartItem['qty'];
+                $sstmt = $conn->prepare('SELECT stock FROM food WHERE id = ? LIMIT 1');
+                if ($sstmt) {
+                    $sstmt->bind_param('i', $checkId);
+                    $sstmt->execute();
+                    $res = $sstmt->get_result();
+                    $row = $res ? $res->fetch_assoc() : null;
+                    $sstmt->close();
+                    $available = $row ? (int)($row['stock'] ?? 0) : 0;
+                    if ($checkQty > $available) {
+                        $error = 'Not enough stock for "' . htmlspecialchars((string)$cartItem['name']) . '". Available: ' . $available . '.';
+                        break;
+                    }
+                } else {
+                    $error = 'Failed to validate stock before placing order.';
+                    break;
+                }
+            }
+            if ($error) { goto end_place_order; }
             $tableNumber = max(1, min(20, (int)($_POST['table_number'] ?? $_SESSION['selected_table_number'])));
             $_SESSION['selected_table_number'] = $tableNumber;
             $total = 0.0; foreach ($_SESSION['cart'] as $item) { $total += ((float)$item['price']) * ((int)$item['qty']); }
@@ -46,24 +77,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $orderStmt->execute();
                 $orderId = (int)$conn->insert_id;
                 $orderStmt->close();
+
+                $stockStmt = $conn->prepare('UPDATE food SET stock = stock - ? WHERE id = ? AND stock >= ?');
+                if (!$stockStmt) { throw new Exception('Failed to prepare stock update.'); }
                 $itemStmt = $conn->prepare('INSERT INTO order_items (order_id, food_name, image_url, quantity, price) VALUES (?, ?, ?, ?, ?)');
                 if (!$itemStmt) { throw new Exception('Failed to prepare order item insert.'); }
                 foreach ($_SESSION['cart'] as $item) {
+                    $itemId = (int)$item['id'];
                     $itemName = (string)$item['name']; $itemImageUrl = (string)($item['image_url'] ?? ''); $price = (float)$item['price']; $quantity = (int)$item['qty'];
+                    $stockStmt->bind_param('iii', $quantity, $itemId, $quantity);
+                    $stockStmt->execute();
+                    if ($stockStmt->affected_rows <= 0) {
+                        throw new Exception('One or more items are no longer available in the requested quantity.');
+                    }
                     $itemStmt->bind_param('issid', $orderId, $itemName, $itemImageUrl, $quantity, $price);
                     $itemStmt->execute();
                 }
+                $stockStmt->close();
                 $itemStmt->close();
                 $conn->commit();
                 $_SESSION['cart'] = [];
                 $message = 'Order placed successfully for Table #' . $tableNumber . '. Order ID: #' . $orderId;
             } catch (Throwable $ex) { $conn->rollback(); $error = 'Order failed: ' . $ex->getMessage(); }
+            end_place_order:
         }
     }
 }
 
 $menuItems = [];
-$result = $conn->query('SELECT id, description, image_url, food_name AS name, price FROM food ORDER BY food_name ASC');
+$result = $conn->query('SELECT id, description, image_url, food_name AS name, price, stock FROM food ORDER BY food_name ASC');
 if ($result) { while ($row = $result->fetch_assoc()) { $menuItems[] = $row; } }
 $cartTotal = 0.0; foreach ($_SESSION['cart'] as $item) { $cartTotal += ((float)$item['price']) * ((int)$item['qty']); }
 ?>
@@ -87,7 +129,7 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;color:#111827}.con
         <div class="card"><h2>Menu</h2>
             <?php if (!$menuItems): ?><p class="muted">No menu items found. Create a <code>menu_items</code> table with columns: <code>id, name, description, price</code>.</p><?php endif; ?>
             <?php foreach ($menuItems as $item): ?>
-                <div class="item"><div class="row"><div style="display:flex;align-items:center;"><?php if (!empty($item['image_url'])): ?><img src="<?php echo e($item['image_url']); ?>" alt="<?php echo e($item['name']); ?>" class="food-thumb"><?php endif; ?><div><strong><?php echo e($item['name']); ?></strong><br><span class="muted"><?php echo e($item['description'] ?? ''); ?></span><br><strong>$<?php echo number_format((float)$item['price'], 2); ?></strong></div></div><form method="post" class="actions" style="min-width:220px;"><input type="hidden" name="item_id" value="<?php echo (int)$item['id']; ?>"><input type="number" name="qty" value="1" min="1" style="max-width:80px"><button type="submit" name="add_to_cart">Add</button></form></div></div>
+                                <div class="item"><div class="row"><div style="display:flex;align-items:center;"><?php if (!empty($item['image_url'])): ?><img src="<?php echo e($item['image_url']); ?>" alt="<?php echo e($item['name']); ?>" class="food-thumb"><?php endif; ?><div><strong><?php echo e($item['name']); ?></strong><br><span class="muted"><?php echo e($item['description'] ?? ''); ?></span><br><strong>$<?php echo number_format((float)$item['price'], 2); ?></strong><br><span class="muted">In stock: <?php echo (int)($item['stock'] ?? 0); ?></span><br><span class="muted">Max order: <?php echo (int)($item['stock'] ?? 0); ?></span></div></div><form method="post" class="actions" style="min-width:220px;"><input type="hidden" name="item_id" value="<?php echo (int)$item['id']; ?>"><input type="number" name="qty" value="1" min="1" max="<?php echo max(0, (int)($item['stock'] ?? 0)); ?>" style="max-width:80px"><button type="submit" name="add_to_cart" <?php echo ((int)($item['stock'] ?? 0) <= 0) ? 'disabled' : ''; ?>>Add</button></form></div></div>
             <?php endforeach; ?>
         </div>
         <div class="card"><h2>Cart</h2>

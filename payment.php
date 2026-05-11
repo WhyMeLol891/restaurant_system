@@ -114,6 +114,14 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 		$stmt->execute();
 		$stmt->close();
 
+        // Insert a receipt record so completed payments have a receipt history
+        $rstmt = $conn->prepare("INSERT INTO receipts (table_number, order_id, order_summary, amount) VALUES (?, ?, ?, ?)");
+        if ($rstmt) {
+            $rstmt->bind_param('iisd', $selectedTableNumber, $selectedOrderId, $orderSummary, $amount);
+            $rstmt->execute();
+            $rstmt->close();
+        }
+
 		$conn->commit();
 		$message = 'Payment recorded successfully for Table #' . $selectedTableNumber . '.';
 	}
@@ -140,30 +148,6 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Payment System</title>
-	<style>
-		body { font-family: Arial, sans-serif; background: #f4f7fb; margin: 0; padding: 0; }
-		.container { max-width: 720px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
-		h1 { margin-top: 0; }
-		.summary { background: #eef7ff; padding: 16px; border-radius: 10px; margin-bottom: 20px; }
-		.order-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-top: 14px; white-space: pre-wrap; }
-		.qr-trigger { background: #eaf1ff; border-radius: 20px; padding: 18px; margin-top: 18px; }
-		.qr-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); align-items: center; justify-content: center; padding: 24px; z-index: 1000; }
-		.qr-modal-backdrop.is-open { display: flex; }
-		.qr-modal { width: min(520px, 100%); background: #eaf1ff; border-radius: 24px; padding: 26px 20px; text-align: center; box-shadow: 0 18px 60px rgba(15, 23, 42, 0.35); }
-		.qr-frame { background: #fff; border: 3px solid #2f77f5; border-radius: 20px; padding: 20px; max-width: 420px; margin: 18px auto 0; }
-		.qr-image { width: 100%; max-width: 320px; height: auto; display: block; margin: 0 auto; }
-		.qr-name { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; margin: 14px 0 6px; }
-		.qr-note { color: #666; margin-top: 18px; line-height: 1.5; }
-		.qr-close { background: #0f172a; margin-top: 16px; }
-		.qr-close:hover { background: #1e293b; }
-		.msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
-		.success { background: #e8fff1; color: #136f3a; }
-		.error { background: #ffecec; color: #9c1c1c; }
-		label { display: block; margin: 12px 0 6px; font-weight: 600; }
-		input, select { width: 100%; padding: 12px; border: 1px solid #ccd6e0; border-radius: 8px; box-sizing: border-box; }
-		button { margin-top: 18px; background: #2563eb; color: #fff; border: 0; padding: 12px 16px; border-radius: 8px; cursor: pointer; }
-		button:hover { background: #1d4ed8; }
-	</style>
 </head>
 <body>
 	<div class="container">

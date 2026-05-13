@@ -1,6 +1,12 @@
 <?php
 include 'db.php';
 
+// Check if user is logged in
+if (!isset($_SESSION['username']) || empty($_SESSION['username'])) {
+    header('Location: admin_login.php');
+    exit();
+}
+
 $selectedTable = isset($_GET['table_number']) ? (int)$_GET['table_number'] : 0;
 $searchAmount = isset($_GET['amount']) ? (float)$_GET['amount'] : 0;
 $fromDate = isset($_GET['from_date']) && $_GET['from_date'] ? $_GET['from_date'] : '';
@@ -73,21 +79,42 @@ if ($stmt) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Receipts</title>
-<link rel="stylesheet" href="style.css">
-<style>
-  .filter-bar { background:#f5f5f5; padding:16px; border-radius:8px; margin-bottom:16px; display:grid; gap:12px; }
-  .filter-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
-  .filter-row label { display:block; font-weight:600; font-size:14px; margin-bottom:4px; }
-  .filter-row input, .filter-row select { padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; }
-  .filter-row button { background:#2563eb; color:#fff; border:0; padding:8px 16px; border-radius:4px; cursor:pointer; }
-  .filter-row button:hover { background:#1d4ed8; }
-  .table-wrapper { max-height:600px; overflow-y:auto; border:1px solid #ddd; border-radius:8px; }
-  table { width:100%; border-collapse:collapse; }
-  thead { position:sticky; top:0; background:#f9f9f9; }
-  th, td { padding:12px; text-align:left; border-bottom:1px solid #e5e7eb; }
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Receipts</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<!-- Sidebar Navigation -->
+	<div class="sidebar">
+		<div class="sidebar-brand">🍽️ Restaurant</div>
+		<nav class="sidebar-nav">
+			<a href="admin.php">📊 Dashboard</a>
+			<a href="order.php">🛒 View Orders</a>
+			<a href="view_food.php">🍕 View Food</a>
+			<a href="add_food.php">➕ Add Food</a>
+			<a href="kitchen.php">👨‍🍳 Kitchen</a>
+			<a href="payment.php">💳 Payments</a>
+			<a href="receipts.php" class="active">📄 Receipts</a>
+			<?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
+				<a href="admin_login.php?logout=1" style="margin-top: auto;">🚪 Logout</a>
+			<?php } else { ?>
+				<a href="admin_login.php">🔐 Login</a>
+			<?php } ?>
+		</nav>
+	</div>
+
+	<div class="top-menu">
+		<h1>📄 Receipts</h1>
+	</div>
+
+	<div class="container">
+		<div class="header">
+			<h1>📄 Receipts History</h1>
+			<p>View and manage all customer receipts</p>
+		</div>
+
+		<div class="card">
   th { font-weight:600; background:#f3f4f6; }
   tbody tr:hover { background:#f9fafb; }
   .toggle-items { background:#ddd; border:0; padding:4px 8px; border-radius:4px; cursor:pointer; }

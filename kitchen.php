@@ -39,18 +39,39 @@ if ($result === false) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitchen Staff Dashboard</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #f5f5f5; 
-            padding: 20px; 
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">🍽️ Restaurant</div>
+        <nav class="sidebar-nav">
+            <a href="admin.php">📊 Dashboard</a>
+            <a href="order.php">🛒 View Orders</a>
+            <a href="view_food.php">🍕 View Food</a>
+            <a href="add_food.php">➕ Add Food</a>
+            <a href="kitchen.php" class="active">👨‍🍳 Kitchen</a>
+            <a href="payment.php">💳 Payments</a>
+            <a href="receipts.php">📄 Receipts</a>
+            <?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
+                <a href="admin_login.php?logout=1" style="margin-top: auto;">🚪 Logout</a>
+            <?php } else { ?>
+                <a href="admin_login.php">🔐 Login</a>
+            <?php } ?>
+        </nav>
+    </div>
 
-<h2>👨‍🍳 Kitchen Orders</h2>
+    <div class="top-menu">
+        <h1>👨‍🍳 Kitchen Staff Dashboard</h1>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>👨‍🍳 Kitchen Orders</h1>
+            <p>Manage and track order preparation</p>
+        </div>
 
 <?php if ($result->num_rows > 0) { ?>
     <?php while($row = $result->fetch_assoc()) { ?>
@@ -60,7 +81,7 @@ if ($result === false) {
             <p><strong>Table:</strong> <?php echo !empty($row['table_number']) ? 'Table #' . (int)$row['table_number'] : 'N/A'; ?></p>
             <p><strong>Items:</strong></p>
             <?php
-                $itemStmt = $conn->prepare("SELECT food_name, image_url, quantity, price FROM order_items WHERE order_id = ? ORDER BY id ASC");
+                $itemStmt = $conn->prepare("SELECT food_name, quantity, price FROM order_items WHERE order_id = ? ORDER BY id ASC");
                 $itemStmt->bind_param('i', $row['id']);
                 $itemStmt->execute();
                 $itemRes = $itemStmt->get_result();
@@ -68,9 +89,6 @@ if ($result === false) {
                     while ($item = $itemRes->fetch_assoc()) {
             ?>
                 <div class="item-row">
-                    <?php if (!empty($item['image_url'])): ?>
-                        <img class="item-img" src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['food_name']); ?>">
-                    <?php endif; ?>
                     <div>
                         <div class="item-name"><?php echo htmlspecialchars($item['food_name']); ?></div>
                         <div class="item-sub">Qty: <?php echo (int)$item['quantity']; ?> | $<?php echo number_format((float)$item['price'], 2); ?></div>
@@ -101,3 +119,6 @@ if ($result === false) {
     <div style="text-align:center;">            <h3>No active orders.</h3>
     </div>
 <?php } ?>
+    </div>
+</body>
+</html>

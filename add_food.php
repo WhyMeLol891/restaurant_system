@@ -2,6 +2,12 @@
 
 include 'db.php';
 
+// Check if user is logged in
+if (!isset($_SESSION['username']) || empty($_SESSION['username'])) {
+    header('Location: admin_login.php');
+    exit();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $food_name = trim($_POST['food_name'] ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -29,16 +35,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <h1>Add New Food Item</h1>
-    <form method="POST" action="">
-        <input type="text" name="food_name" placeholder="Food Name" required>
-        <textarea name="description" placeholder="Description" required></textarea>
-        <input type="url" name="image_url" placeholder="Image URL (https://...)" pattern="https?://.+">
-        <input type="number" step="0.01" name="price" placeholder="Price" required>
-        <input type="text" name="category" placeholder="Category" required>
-        <input type="number" name="stock" placeholder="Stock Quantity" required>
-        <input type="submit" value="Add Food">
-        <a style="color: blue; text-decoration: underline;" href="view_food.php" class="button">Back to Food List</a>
-    </form>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">🍽️ Restaurant</div>
+        <nav class="sidebar-nav">
+            <a href="admin.php">📊 Dashboard</a>
+            <a href="order.php">🛒 View Orders</a>
+            <a href="view_food.php">🍕 View Food</a>
+            <a href="add_food.php" class="active">➕ Add Food</a>
+            <a href="kitchen.php">👨‍🍳 Kitchen</a>
+            <a href="payment.php">💳 Payments</a>
+            <a href="receipts.php">📄 Receipts</a>
+            <?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
+                <a href="admin_login.php?logout=1" style="margin-top: auto;">🚪 Logout</a>
+            <?php } else { ?>
+                <a href="admin_login.php">🔐 Login</a>
+            <?php } ?>
+        </nav>
+    </div>
+
+    <div class="top-menu">
+        <h1>Add New Food Item</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>➕ Add New Food Item</h2>
+            <form method="POST" action="">
+                <div>
+                    <label for="food_name">Food Name:</label>
+                    <input type="text" id="food_name" name="food_name" placeholder="Enter food name" required>
+                </div>
+                <div>
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" placeholder="Enter food description" required></textarea>
+                </div>
+                <div>
+                    <label for="image_url">Image URL:</label>
+                    <input type="text" id="image_url" name="image_url" placeholder="Image URL (https://...)" required>
+                </div>
+                <div>
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" step="0.01" name="price" placeholder="0.00" required>
+                </div>
+                <div>
+                    <label for="category">Category:</label>
+                    <input type="text" id="category" name="category" placeholder="e.g., Appetizer, Main Course" required>
+                </div>
+                <div>
+                    <label for="stock">Stock Quantity:</label>
+                    <input type="number" id="stock" name="stock" placeholder="0" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="button primary" style="flex: 1;">✅ Add Food Item</button>
+                    <a href="view_food.php" class="button" style="flex: 1; text-align: center;">📋 View Food List</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

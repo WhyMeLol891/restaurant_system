@@ -2,6 +2,12 @@
 
 include 'db.php';
 
+// Check if user is logged in
+if (!isset($_SESSION['username']) || empty($_SESSION['username'])) {
+    header('Location: admin_login.php');
+    exit();
+}
+
 $totalRevenue = 0;
 $receipts = [];
 
@@ -83,18 +89,27 @@ if (!empty($orderIds)) {
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">🍽️ Restaurant</div>
+        <nav class="sidebar-nav">
+            <a href="admin.php" class="active">📊 Dashboard</a>
+            <a href="order.php">🛒 View Orders</a>
+            <a href="view_food.php">🍕 View Food</a>
+            <a href="add_food.php">➕ Add Food</a>
+            <a href="kitchen.php">👨‍🍳 Kitchen</a>
+            <a href="payment.php">💳 Payments</a>
+            <a href="receipts.php">📄 Receipts</a>
+            <?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
+                <a href="admin_login.php?logout=1" style="margin-top: auto;">🚪 Logout</a>
+            <?php } else { ?>
+                <a href="admin_login.php">🔐 Login</a>
+            <?php } ?>
+        </nav>
+    </div>
+
     <div class="top-menu">
         <h1>Restaurant System</h1>
-        <div class="top-menu-buttons">
-            <a href="order.php" class="button">View Orders</a>
-            <a href="view_food.php" class="button">View Food</a>
-            <a href="add_food.php" class="button">Add Food</a>
-            <a href="kitchen.php" class="button">Kitchen Dashboard</a>
-            <a href="admin_login.php" class="button login-btn">Login</a>
-            <?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
-                    <a href="#"><?=$_SESSION['username']?> </a>
-            <?php } ?>
-        </div>
     </div>
 
     <div class="container">
@@ -220,9 +235,6 @@ if (!empty($orderIds)) {
                 });
             });
         </script>
-    </div>
-    <div class="top-menu-buttons">
-        <a href="payment.php" class="button">View Payments</a>
     </div>
 </body>
 </html>

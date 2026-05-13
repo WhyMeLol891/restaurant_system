@@ -1,6 +1,12 @@
 <?php
 include 'db.php';
 
+// Check if user is logged in
+if (!isset($_SESSION['username']) || empty($_SESSION['username'])) {
+    header('Location: admin_login.php');
+    exit();
+}
+
 $message = '';
 $edit_food = null;
 
@@ -74,16 +80,36 @@ if ($result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Food Items</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <style>
-        body {
-            background: linear-gradient(to right, #ef9308 0%, #fcb69f 100%);
-        }
-    </style>
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">🍽️ Restaurant</div>
+        <nav class="sidebar-nav">
+            <a href="admin.php">📊 Dashboard</a>
+            <a href="order.php">🛒 View Orders</a>
+            <a href="view_food.php" class="active">🍕 View Food</a>
+            <a href="add_food.php">➕ Add Food</a>
+            <a href="kitchen.php">👨‍🍳 Kitchen</a>
+            <a href="payment.php">💳 Payments</a>
+            <a href="receipts.php">📄 Receipts</a>
+            <?php if(isset($_SESSION["username"]) && $_SESSION["username"]){ ?>
+                <a href="admin_login.php?logout=1" style="margin-top: auto;">🚪 Logout</a>
+            <?php } else { ?>
+                <a href="admin_login.php">🔐 Login</a>
+            <?php } ?>
+        </nav>
+    </div>
 
-    <h1>Food Menu / Items</h1>
-    <p><a href="admin.php">Back to Admin Dashboard</a></p>
+    <div class="top-menu">
+        <h1>View Food Items</h1>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🍕 Food Menu / Items</h1>
+            <p>Manage your restaurant's menu items</p>
+        </div>
 
     <?php if ($edit_food): ?>
         <h2>Edit Food Item</h2>
@@ -158,6 +184,6 @@ if ($result) {
             <?php endif; ?>
         </tbody>
     </table>
-
+    </div>
 </body>
 </html>

@@ -112,31 +112,47 @@ if ($result) {
         </div>
 
     <?php if ($edit_food): ?>
-        <h2>Edit Food Item</h2>
-        <form method="post" action="view_food.php">
-            <input type="hidden" name="id" value="<?php echo htmlspecialchars($edit_food['id']); ?>">
-            <label>Food Name:</label><br>
-            <input type="text" name="food_name" value="<?php echo htmlspecialchars($edit_food['food_name']); ?>" required><br><br>
+        <div class="card edit-food-card">
+            <h2>✏️ Edit Food Item</h2>
+            <form method="post" action="view_food.php" class="edit-food-form">
+                <input type="hidden" name="id" value="<?php echo htmlspecialchars($edit_food['id']); ?>">
 
-            <label>Category:</label><br>
-            <input type="text" name="category" value="<?php echo htmlspecialchars($edit_food['category'] ?? ''); ?>"><br><br>
+                <div class="form-group">
+                    <label for="food_name">Food Name</label>
+                    <input id="food_name" type="text" name="food_name" value="<?php echo htmlspecialchars($edit_food['food_name']); ?>" required>
+                </div>
 
-            <label>Description:</label><br>
-            <textarea name="description"><?php echo htmlspecialchars($edit_food['description'] ?? ''); ?></textarea><br><br>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input id="category" type="text" name="category" value="<?php echo htmlspecialchars($edit_food['category'] ?? ''); ?>">
+                </div>
 
-            <label>Image URL:</label><br>
-            <input type="url" name="image_url" value="<?php echo htmlspecialchars($edit_food['image_url'] ?? ''); ?>" placeholder="https://example.com/food.jpg" pattern="https?://.+"><br><br>
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3"><?php echo htmlspecialchars($edit_food['description'] ?? ''); ?></textarea>
+                </div>
 
-            <label>Price:</label><br>
-            <input type="number" step="0.01" name="price" value="<?php echo htmlspecialchars($edit_food['price']); ?>" required><br><br>
+                <div class="form-group full-width">
+                    <label for="image_url">Image URL</label>
+                    <input id="image_url" type="url" name="image_url" value="<?php echo htmlspecialchars($edit_food['image_url'] ?? ''); ?>" placeholder="https://example.com/food.jpg" pattern="https?://.+">
+                </div>
 
-            <label>Stock:</label><br>
-            <input type="number" name="stock" value="<?php echo htmlspecialchars($edit_food['stock'] ?? 0); ?>" required><br><br>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input id="price" type="number" step="0.01" name="price" value="<?php echo htmlspecialchars($edit_food['price']); ?>" required>
+                </div>
 
-            <button type="submit" name="update_food">Update Food</button>
-            <a href="view_food.php">Cancel</a>
-        </form>
-        <hr>
+                <div class="form-group">
+                    <label for="stock">Stock</label>
+                    <input id="stock" type="number" name="stock" value="<?php echo htmlspecialchars($edit_food['stock'] ?? 0); ?>" required>
+                </div>
+
+                <div class="edit-food-actions">
+                    <button type="submit" name="update_food" class="button primary">Update Food</button>
+                    <a href="view_food.php" class="button clear-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
     <?php endif; ?>
     
 

@@ -74,6 +74,7 @@ if ($result === false) {
         </div>
 
 <?php if ($result->num_rows > 0) { ?>
+    <div class="kitchen-orders-scrollbox">
     <?php while($row = $result->fetch_assoc()) { ?>
         <div class="order-card <?php echo ($row['status'] == 'Preparing') ? 'preparing-border' : ''; ?>">
             <span class="badge"><?php echo $row['status']; ?></span>
@@ -81,7 +82,7 @@ if ($result === false) {
             <p><strong>Table:</strong> <?php echo !empty($row['table_number']) ? 'Table #' . (int)$row['table_number'] : 'N/A'; ?></p>
             <p><strong>Items:</strong></p>
             <?php
-                $itemStmt = $conn->prepare("SELECT food_name, quantity, price FROM order_items WHERE order_id = ? ORDER BY id ASC");
+                $itemStmt = $conn->prepare("SELECT food_name, quantity FROM order_items WHERE order_id = ? ORDER BY id ASC");
                 $itemStmt->bind_param('i', $row['id']);
                 $itemStmt->execute();
                 $itemRes = $itemStmt->get_result();
@@ -91,7 +92,7 @@ if ($result === false) {
                 <div class="item-row">
                     <div>
                         <div class="item-name"><?php echo htmlspecialchars($item['food_name']); ?></div>
-                        <div class="item-sub">Qty: <?php echo (int)$item['quantity']; ?> | $<?php echo number_format((float)$item['price'], 2); ?></div>
+                        <div class="item-sub">Qty: <?php echo (int)$item['quantity']; ?></div>
                     </div>
                 </div>
             <?php
@@ -115,6 +116,7 @@ if ($result === false) {
             </div>
         </div>
     <?php } ?>
+    </div>
 <?php } else { ?>
     <div style="text-align:center;">            <h3>No active orders.</h3>
     </div>

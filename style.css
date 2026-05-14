@@ -357,6 +357,30 @@ html, body {
    KITCHEN ORDER CARD STYLING
    ======================================== */
 
+.kitchen-orders-scrollbox {
+    max-height: 520px;
+    min-height: 260px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.kitchen-orders-scrollbox::-webkit-scrollbar {
+    width: 9px;
+}
+
+.kitchen-orders-scrollbox::-webkit-scrollbar-thumb {
+    background: rgba(78, 205, 196, 0.5);
+    border-radius: 999px;
+}
+
+.kitchen-orders-scrollbox::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 999px;
+}
+
 .order-card {
     background: var(--bg-white);
     border: 2px solid var(--secondary-bright);
@@ -525,6 +549,30 @@ html, body {
 .payment-orders-list {
     display: grid;
     gap: 1.2rem;
+}
+
+.payment-orders-scrollbox {
+    max-height: 320px;
+    min-height: 220px;
+    overflow-y: auto;
+    padding: 0.4rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.payment-orders-scrollbox::-webkit-scrollbar {
+    width: 8px;
+}
+
+.payment-orders-scrollbox::-webkit-scrollbar-thumb {
+    background: rgba(78, 205, 196, 0.45);
+    border-radius: 999px;
+}
+
+.payment-orders-scrollbox::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 999px;
 }
 
 .payment-order-item {
@@ -1160,6 +1208,40 @@ table tbody tr:last-child {
     grid-column: 1 / -1;
 }
 
+.edit-food-card {
+    max-width: 700px;
+    margin-bottom: 1.2rem;
+}
+
+.edit-food-card h2 {
+    margin-bottom: 0.9rem;
+    font-size: 1.25rem;
+}
+
+.edit-food-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem 1rem;
+}
+
+.edit-food-form textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.edit-food-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 0.7rem;
+    justify-content: flex-end;
+    margin-top: 0.3rem;
+}
+
+.edit-food-actions .button {
+    padding: 0.6rem 1rem;
+    font-size: 0.88rem;
+}
+
 .form-group label {
     font-weight: 700;
     color: var(--text-dark);
@@ -1351,6 +1433,30 @@ table tbody tr:last-child {
     gap: 1.2rem;
 }
 
+.payment-history-scrollbox {
+    max-height: 300px;
+    min-height: 210px;
+    overflow-y: auto;
+    padding: 0.4rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.payment-history-scrollbox::-webkit-scrollbar {
+    width: 8px;
+}
+
+.payment-history-scrollbox::-webkit-scrollbar-thumb {
+    background: rgba(78, 205, 196, 0.45);
+    border-radius: 999px;
+}
+
+.payment-history-scrollbox::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 999px;
+}
+
 .receipt-card {
     background: linear-gradient(135deg, var(--bg-white) 0%, rgba(78, 205, 196, 0.03) 100%);
     border: 2px solid var(--border-color);
@@ -1425,6 +1531,12 @@ table tbody tr:last-child {
     color: var(--text-light);
 }
 
+.receipt-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
 .receipt-date {
     font-weight: 600;
 }
@@ -1434,6 +1546,77 @@ table tbody tr:last-child {
     padding: 0.3rem 0.6rem;
     border-radius: 4px;
     font-family: monospace;
+}
+
+.receipt-print-btn {
+    border: 0;
+    border-radius: 6px;
+    padding: 0.36rem 0.7rem;
+    background: linear-gradient(135deg, var(--secondary-bright), #2dbba8);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.receipt-print-btn:hover {
+    filter: brightness(0.95);
+}
+
+.table-print-btn {
+    white-space: nowrap;
+}
+
+.qr-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 1rem;
+}
+
+.qr-modal-backdrop.show {
+    display: flex;
+}
+
+.qr-modal {
+    background: var(--bg-white);
+    width: min(92vw, 480px);
+    border-radius: 14px;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+    padding: 1.3rem;
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+.qr-frame {
+    text-align: center;
+}
+
+.qr-name {
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.8rem;
+}
+
+.qr-note {
+    color: var(--text-light);
+    font-size: 0.92rem;
+    margin-top: 0.8rem;
+}
+
+.qr-close {
+    margin-top: 1.2rem;
+    padding: 0.7rem 1.1rem;
+    background: linear-gradient(135deg, var(--primary-bright), var(--accent-pink));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
 }
 
 /* ========================================
@@ -1495,6 +1678,19 @@ table tbody tr:last-child {
 
     .modal-content {
         width: 95%;
+    }
+
+    .edit-food-form {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-food-actions {
+        justify-content: stretch;
+    }
+
+    .edit-food-actions .button {
+        flex: 1;
+        text-align: center;
     }
 }
 

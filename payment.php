@@ -116,7 +116,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 				COALESCE(SUM(oi.quantity * oi.price), 0) AS total_amount
 			 FROM orders o
 			 LEFT JOIN order_items oi ON oi.order_id = o.id
-			 WHERE o.status IN ('Pending', 'Preparing', 'Completed')
+			 WHERE o.status IN ('Pending', 'Preparing')
 			 GROUP BY o.id, o.table_number, o.status
 			 ORDER BY o.id DESC"
 		);
@@ -305,92 +305,16 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 			<div class="msg error"><?php echo htmlspecialchars($error); ?></div>
 		<?php endif; ?>
 
-		<!-- PAYMENT FORM - SIMPLIFIED AND BEAUTIFUL -->
-		<div class="card payment-form-card">
-			<h2>💰 Quick Payment</h2>
-			<form method="post" action="">
-				<div class="payment-form-grid">
-					<div class="form-group full-width">
-						<label for="order_id">Select Order to Pay</label>
-						<select id="order_id" name="order_id" required onchange="document.getElementById('paymentForm').submit();">
-							<option value="">-- Choose an order --</option>
-							<?php foreach ($activeOrders as $order): ?>
-								<option value="<?php echo (int)$order['id']; ?>" <?php echo ((int)$order['id'] === (int)$selectedOrderId) ? 'selected' : ''; ?>>
-									Order #<?php echo (int)$order['id']; ?> • Table #<?php echo (int)$order['table_number']; ?> • $<?php echo number_format((float)$order['total_amount'], 2); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</div>
-
-					<?php if ($selectedOrder): ?>
-						<div class="form-group full-width">
-							<label>Order Details</label>
-							<div class="order-details-summary">
-								<div class="details-header">
-									<strong>Table #<?php echo (int)$selectedOrder['table_number']; ?></strong>
-									<span class="amount-badge">$<?php echo number_format((float)$selectedOrder['total_amount'], 2); ?></span>
-								</div>
-								<div class="details-items"><?php 
-									$aggregatedSummary = aggregateOrderItems($selectedOrder['order_summary'] ?? '');
-									echo htmlspecialchars(implode(', ', $aggregatedSummary) ?: 'N/A');
-								?></div>
-							</div>
-						</div>
-
-						<div class="form-group full-width">
-							<label for="payment_method">Payment Method</label>
-							<div class="payment-methods">
-								<label class="payment-method-option">
-									<input type="radio" name="payment_method" value="cash" required onchange="syncPaymentUI()">
-									<span class="method-label">💵 Cash</span>
-								</label>
-								<label class="payment-method-option">
-									<input type="radio" name="payment_method" value="card" required onchange="syncPaymentUI()">
-									<span class="method-label">💳 Card</span>
-								</label>
-								<label class="payment-method-option">
-									<input type="radio" name="payment_method" value="online" required onchange="syncPaymentUI()">
-									<span class="method-label">📱 Online</span>
-								</label>
-								<label class="payment-method-option">
-									<input type="radio" name="payment_method" value="tng_ewallet" required onchange="syncPaymentUI()">
-									<span class="method-label">🎫 Touch 'n Go</span>
-								</label>
-							</div>
-						</div>
-
-						<div class="cash-panel-simplified" id="cashPanel" hidden>
-							<div class="form-group">
-								<label for="cash_received">Amount Received</label>
-								<input id="cash_received" name="cash_received" type="number" min="0" step="0.01" placeholder="0.00" oninput="syncCashChange()">
-							</div>
-							<div class="cash-change-display">
-								<div class="change-item">
-									<span>Amount Due:</span>
-									<strong>$<span id="amountDue"><?php echo number_format((float)$selectedOrder['total_amount'], 2); ?></span></strong>
-								</div>
-								<div class="change-item highlight">
-									<span>Change:</span>
-									<strong>$<span id="cashChange">0.00</span></strong>
-								</div>
-							</div>
-						</div>
-
-						<button type="submit" class="btn-pay" name="submit_payment">✓ Confirm Payment</button>
-					<?php endif; ?>
-				</div>
-			</form>
-		</div>
-
 		<!-- PENDING ORDERS LIST -->
 		<div class="card">
 			<h2>📋 Pending Orders</h2>
 			<?php if (empty($activeOrders)): ?>
 				<p style="color: var(--text-light); text-align: center; padding: 2rem;">No pending orders.</p>
 			<?php else: ?>
-				<div class="payment-orders-list">
+				<div class="payment-orders-scrollbox">
+					<div class="payment-orders-list">
 					<?php foreach ($activeOrders as $order): ?>
-						<div class="payment-order-item" onclick="document.getElementById('order_id').value = <?php echo (int)$order['id']; ?>; document.getElementById('paymentForm').submit();" style="cursor: pointer;">
+						<div class="payment-order-item">
 							<div class="payment-order-head">
 								<strong>Order #<?php echo (int)$order['id']; ?></strong>
 								<span>Table #<?php echo (int)$order['table_number']; ?></span>
@@ -405,6 +329,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 							</div>
 						</div>
 					<?php endforeach; ?>
+					</div>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -415,93 +340,117 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 			<?php if (empty($paymentHistory)): ?>
 				<p style="color: var(--text-light); text-align: center; padding: 2rem;">No completed payments yet.</p>
 			<?php else: ?>
-				<div class="receipts-list">
+				<div class="payment-history-scrollbox">
+					<div class="receipts-list">
 					<?php foreach ($paymentHistory as $payment): ?>
+						<?php
+							$method = $payment['payment_method'];
+							$methodEmoji = ['cash' => '💵', 'card' => '💳', 'online' => '📱', 'tng_ewallet' => '🎫'][$method] ?? '💰';
+							$methodName = [
+								'cash' => 'Cash',
+								'card' => 'Card',
+								'online' => 'Online',
+								'tng_ewallet' => 'TNG e Wallet'
+							][$method] ?? ucfirst(str_replace('_', ' ', $method));
+							$aggregatedItems = aggregateOrderItems($payment['order_summary'] ?? '');
+							$itemsText = implode(', ', $aggregatedItems) ?: 'N/A';
+						?>
 						<div class="receipt-card">
 							<div class="receipt-header">
 								<div class="receipt-info">
 									<strong>Table #<?php echo (int)$payment['table_number']; ?></strong>
 									<span class="payment-method-badge"><?php 
-										$method = $payment['payment_method'];
-										$methodEmoji = ['cash' => '💵', 'card' => '💳', 'online' => '📱', 'tng_ewallet' => '🎫'][$method] ?? '💰';
-										echo $methodEmoji . ' ' . ucfirst(str_replace('_', ' ', $method));
+										echo $methodEmoji . ' ' . $methodName;
 									?></span>
 								</div>
 								<strong class="receipt-amount">$<?php echo number_format((float)$payment['amount'], 2); ?></strong>
 							</div>
 							<div class="receipt-items">
 								<?php 
-									$aggregatedItems = aggregateOrderItems($payment['order_summary'] ?? '');
-									echo htmlspecialchars(implode(', ', $aggregatedItems) ?: 'N/A');
+									echo htmlspecialchars($itemsText);
 								?>
 							</div>
 							<div class="receipt-footer">
 								<span class="receipt-date"><?php echo date('M d, Y • H:i', strtotime($payment['created_at'])); ?></span>
-								<span class="receipt-ref">Ref: <?php echo htmlspecialchars((string)$payment['reference_no']); ?></span>
+								<div class="receipt-footer-actions">
+									<span class="receipt-ref">Ref: <?php echo htmlspecialchars((string)$payment['reference_no']); ?></span>
+									<button
+										type="button"
+										class="receipt-print-btn"
+										data-receipt-id="<?php echo (int)$payment['id']; ?>"
+										data-table="<?php echo (int)$payment['table_number']; ?>"
+										data-order="<?php echo (int)$payment['order_id']; ?>"
+										data-method="<?php echo htmlspecialchars($methodName, ENT_QUOTES); ?>"
+										data-amount="<?php echo number_format((float)$payment['amount'], 2, '.', ''); ?>"
+										data-date="<?php echo htmlspecialchars(date('M d, Y H:i:s', strtotime($payment['created_at'])), ENT_QUOTES); ?>"
+										data-reference="<?php echo htmlspecialchars((string)$payment['reference_no'], ENT_QUOTES); ?>"
+										data-items="<?php echo htmlspecialchars($itemsText, ENT_QUOTES); ?>"
+										onclick="printPaymentReceipt(this)">
+										Print
+									</button>
+								</div>
 							</div>
 						</div>
 					<?php endforeach; ?>
+					</div>
 				</div>
 			<?php endif; ?>
 		</div>
 
-		<form id="paymentForm" method="post" action="" style="display: none;"></form>
-
-		<div class="qr-modal-backdrop" id="tngQrModal" aria-hidden="true">
-			<div class="qr-modal" role="dialog" aria-modal="true" aria-labelledby="tngQrTitle">
-				<div id="tngQrTitle" style="font-size: 26px; font-weight: 700; margin-bottom: 8px;">Touch 'n Go eWallet</div>
-				<div class="qr-frame">
-					<div class="qr-name">DERRICK LIM YEONG WEI</div>
-					<?php if (file_exists(__DIR__ . '/' . $tngQrImage)): ?>
-						<img class="qr-image" src="<?php echo htmlspecialchars($tngQrImage); ?>" alt="Touch 'n Go eWallet QR code">
-					<?php else: ?>
-						<div class="order-box" style="margin: 18px 0; background: #fff; white-space: normal;">
-							QR image not found. Expected file: <strong>assets/tng-qr.jpeg</strong>
-						</div>
-					<?php endif; ?>
-					<div class="qr-note">Scan with any banking app or eWallet to transfer money or pay.</div>
-					<?php if ($selectedOrder): ?>
-						<div class="order-box" style="margin-top: 16px; background: #fff; white-space: normal; text-align: left;">
-							<strong>Amount to Pay:</strong> $<?php echo number_format((float)$selectedOrder['total_amount'], 2); ?><br>
-							<strong>Reference:</strong> Table #<?php echo (int)$selectedOrder['table_number']; ?> - Orders #<?php echo htmlspecialchars($selectedOrder['order_ids']); ?>
-						</div>
-					<?php endif; ?>
-					<button type="button" class="qr-close" id="closeTngQr">Close</button>
-				</div>
-			</div>
-		</div>
-
 		<script>
-			function syncPaymentUI() {
-				var radios = document.querySelectorAll('input[name="payment_method"]');
-				var selectedMethod = '';
-				radios.forEach(function(radio) {
-					if (radio.checked) selectedMethod = radio.value;
-				});
+			function printPaymentReceipt(button) {
+				if (!button) return;
+				var receiptId = button.dataset.receiptId || '-';
+				var tableNo = button.dataset.table || '-';
+				var orderId = button.dataset.order || '-';
+				var method = button.dataset.method || '-';
+				var amount = button.dataset.amount || '0.00';
+				var dateText = button.dataset.date || '';
+				var reference = button.dataset.reference || '-';
+				var items = button.dataset.items || 'N/A';
 
-				var cashPanel = document.getElementById('cashPanel');
-				var isCash = selectedMethod === 'cash';
-				if (cashPanel) cashPanel.hidden = !isCash;
-				
-				if (isCash) {
-					syncCashChange();
+				function esc(value) {
+					return String(value)
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;')
+						.replace(/"/g, '&quot;')
+						.replace(/'/g, '&#39;');
 				}
-			}
 
-			function syncCashChange() {
-				var cashReceived = document.getElementById('cash_received');
-				var amountDue = document.getElementById('amountDue');
-				var cashChange = document.getElementById('cashChange');
-				var totalAmount = <?php echo json_encode((float)($selectedOrder['total_amount'] ?? 0)); ?>;
+				var printWindow = window.open('', '_blank', 'width=720,height=900');
+				if (!printWindow) return;
 
-				if (!cashReceived || !cashChange) return;
+				var html = ''
+					+ '<!doctype html><html><head><meta charset="utf-8">'
+					+ '<title>Receipt #' + esc(receiptId) + '</title>'
+					+ '<style>'
+					+ 'body{font-family:Arial,sans-serif;padding:24px;color:#222;}'
+					+ '.box{max-width:520px;margin:0 auto;border:1px solid #ddd;border-radius:8px;padding:18px;}'
+					+ 'h1{font-size:22px;margin:0 0 8px;}h2{font-size:14px;margin:0 0 18px;color:#666;}'
+					+ '.row{display:flex;justify-content:space-between;margin:6px 0;gap:12px;}'
+					+ '.label{font-weight:700;color:#444;}.items{margin-top:14px;padding-top:10px;border-top:1px dashed #bbb;}'
+					+ '.amount{font-size:24px;font-weight:700;margin-top:12px;text-align:right;}'
+					+ '.footer{margin-top:14px;font-size:12px;color:#666;text-align:center;}'
+					+ '@media print{body{padding:0}.box{border:0;max-width:none;padding:0}}'
+					+ '</style></head><body>'
+					+ '<div class="box">'
+					+ '<h1>Restaurant Receipt</h1><h2>Payment Receipt #' + esc(receiptId) + '</h2>'
+					+ '<div class="row"><span class="label">Table</span><span>#' + esc(tableNo) + '</span></div>'
+					+ '<div class="row"><span class="label">Order</span><span>#' + esc(orderId) + '</span></div>'
+					+ '<div class="row"><span class="label">Payment Method</span><span>' + esc(method) + '</span></div>'
+					+ '<div class="row"><span class="label">Date</span><span>' + esc(dateText) + '</span></div>'
+					+ '<div class="row"><span class="label">Reference</span><span>' + esc(reference) + '</span></div>'
+					+ '<div class="items"><div class="label">Items</div><div>' + esc(items) + '</div></div>'
+					+ '<div class="amount">Total: $' + esc(amount) + '</div>'
+					+ '<div class="footer">Thank you for dining with us.</div>'
+					+ '</div></body></html>';
 
-				var received = parseFloat(cashReceived.value || '0');
-				if (isNaN(received) || received < totalAmount) {
-					cashChange.textContent = '0.00';
-					return;
-				}
-				cashChange.textContent = (received - totalAmount).toFixed(2);
+				printWindow.document.open();
+				printWindow.document.write(html);
+				printWindow.document.close();
+				printWindow.focus();
+				printWindow.print();
 			}
 		</script>
 	</div>

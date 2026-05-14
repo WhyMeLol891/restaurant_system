@@ -19,7 +19,6 @@ if ($result = mysqli_query($conn, $revenueQuery)) {
 }
 
 // Handle receipt filters
-$selectedTable = isset($_GET['table_number']) ? (int)$_GET['table_number'] : 0;
 $fromDate = isset($_GET['from_date']) && $_GET['from_date'] ? $_GET['from_date'] : '';
 $toDate = isset($_GET['to_date']) && $_GET['to_date'] ? $_GET['to_date'] : '';
 $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -27,12 +26,6 @@ $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
 $whereClause = '1=1';
 $params = [];
 $types = '';
-
-if ($selectedTable > 0) {
-    $whereClause .= ' AND table_number = ?';
-    $params[] = $selectedTable;
-    $types .= 'i';
-}
 
 if ($fromDate) {
     $whereClause .= ' AND DATE(created_at) >= ?';
@@ -136,15 +129,6 @@ if (!empty($orderIds)) {
             
             <form method="get" class="filter-bar">
                 <div class="filter-bar-row1">
-                    <div>
-                        <label for="table_number">🍽️ Table</label>
-                        <select name="table_number" id="table_number">
-                            <option value="0">All Tables</option>
-                            <?php for ($i=1;$i<=20;$i++): ?>
-                                <option value="<?php echo $i;?>" <?php echo ($selectedTable===$i)?'selected':''; ?>>Table <?php echo $i;?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
                     <div>
                         <label for="from_date">📅 From Date</label>
                         <input type="date" name="from_date" id="from_date" value="<?php echo htmlspecialchars($fromDate); ?>">
